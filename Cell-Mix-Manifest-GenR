@@ -27,12 +27,17 @@ primers <- read.csv(file=infile, header=TRUE, stringsAsFactors = FALSE)
 outdf <- data.frame( ID = rep("", nrow(primers)),
 		     Chr = rep("", nrow(primers)),
                      Pos = rep(0, nrow(primers)),
-                     Seq = rep("", nrow(primers)),
                      Left= rep("", nrow(primers)),
                      Right=rep("", nrow(primers)),
+                     Seq2 = rep("", nrow(primers)),
+                     Seq = rep("", nrow(primers)),
                      stringsAsFactors = FALSE)
-                     
+
+# for design space                     
 offset <- 200
+
+# for SNV context 5bp
+snv <- 5
 
 # This counts the number of bases in the adapters to remove from the primer sequences
 # Need to add one base for it to be correct (with unix counts and visual inspection)
@@ -48,16 +53,17 @@ for (ri in seq(nrow(primers)))
 				left 	<- substr(primers$FORWARD.PRIMER[ri],llen,100L)
 				right 	<- substr(primers$REVERSE.PRIMER[ri],rlen,100L)
 				seq 	<- paste(getSeq(Hsapiens,chr,pos-offset,pos), getSeq(Hsapiens,chr,pos+1,pos+offset), sep='')
-              
+                                seq2 	<- paste(getSeq(Hsapiens,chr,pos-snv,pos), getSeq(Hsapiens,chr,pos+1,pos+snv), sep='')
 
    				outdf$ID[ri] <- id
 				outdf$Chr[ri] <- chr
   				outdf$Pos[ri] <- pos
-  				outdf$Seq[ri] <- seq
-
+  
   				outdf$Left[ri] <- left
   				outdf$Right[ri] <- right
-                     
+  
+  				outdf$Seq2[ri] <- seq2
+  				outdf$Seq[ri] <- seq
 				}
 						
 write.csv(outdf, file = outfile)
