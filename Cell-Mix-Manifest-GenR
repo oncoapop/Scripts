@@ -25,7 +25,7 @@ right_adapt="GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG"
 primers <- read.csv(file=infile, header=TRUE, stringsAsFactors = FALSE)
 
 outdf <- data.frame( ID = rep("", nrow(primers)),
-										 Chr = rep("", nrow(primers)),
+		     Chr = rep("", nrow(primers)),
                      Pos = rep(0, nrow(primers)),
                      Seq = rep("", nrow(primers)),
                      Left= rep("", nrow(primers)),
@@ -40,25 +40,25 @@ llen <- nchar(left_adapt)+1
 rlen <- nchar(right_adapt)+1
 
 for (ri in seq(nrow(primers))) 
-						{
-						id  	<- primers$POSITION[ri]
-						tmp 	<- strsplit(primers$POSITION, split="_")[[ri]][1]
-						chr		<- gsub("C", "c", tmp)
-						pos 	<- as.numeric(strsplit(primers$POSITION, split="_")[[ri]][2])
-						left 	<- substr(primers$FORWARD.PRIMER[ri],llen,100L)
-						right <- substr(primers$REVERSE.PRIMER[ri],rlen,100L)
-						seq 	<- paste(getSeq(Hsapiens,chr,pos-offset,pos), getSeq(Hsapiens,chr,pos+1,pos+offset), sep='')
+				{
+				id  	<- primers$POSITION[ri]
+				tmp 	<- strsplit(primers$POSITION, split="_")[[ri]][1]
+				chr	<- gsub("C", "c", tmp)
+				pos 	<- as.numeric(strsplit(primers$POSITION, split="_")[[ri]][2])
+				left 	<- substr(primers$FORWARD.PRIMER[ri],llen,100L)
+				right 	<- substr(primers$REVERSE.PRIMER[ri],rlen,100L)
+				seq 	<- paste(getSeq(Hsapiens,chr,pos-offset,pos), getSeq(Hsapiens,chr,pos+1,pos+offset), sep='')
               
 
-   					outdf$ID[ri] <- id
-						outdf$Chr[ri] <- chr
-  					outdf$Pos[ri] <- pos
-  					outdf$Seq[ri] <- seq
+   				outdf$ID[ri] <- id
+				outdf$Chr[ri] <- chr
+  				outdf$Pos[ri] <- pos
+  				outdf$Seq[ri] <- seq
 
-  					outdf$Left[ri] <- left
-  					outdf$Right[ri] <- right
+  				outdf$Left[ri] <- left
+  				outdf$Right[ri] <- right
                      
-						}
+				}
 						
 write.csv(outdf, file = outfile)
 
