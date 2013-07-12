@@ -1,1 +1,64 @@
+# Script to Generate a primer sequences for design space for determination of amplicons
+# Given SNV sequence and also primer sequences
+
+# These commands must be specifed in order for this script to work
+# source("http://www.bioconductor.org/biocLite.R"); source("http://www.bioconductor.org/biocLite.R"); 
+# biocLite("BSgenome"); biocLite("BSgenome.Hsapiens.UCSC.hg19"); library('BSgenome.Hsapiens.UCSC.hg19')
+
+library('BSgenome.Hsapiens.UCSC.hg19')
+
+
+########################## VARIABLE TO CHANGE #################################
+
+basedir<- "~/Documents/Breast Cancer/Tumour Evolution/Results/Cell_Line_Mixing"
+
+infile <- paste(basedir,"Cell_Mix_I_Primer_set_144.csv",sep="/")
+outfile <- paste(basedir,"CellMix.csv",sep="/")
+
+left_adapt="TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG"
+right_adapt="GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG"
+
+
+###############################################################################
+
+
+primers <- read.csv(file=infile, header=TRUE, stringsAsFactors = FALSE)
+
+outdf <- data.frame( ID = rep("", nrow(primers)),
+										 Chr = rep("", nrow(primers)),
+                     Pos = rep(0, nrow(primers)),
+                     Seq = rep("", nrow(primers)),
+                     Left= rep("", nrow(primers)),
+                     Right=rep("", nrow(primers)),
+                     stringsAsFactors = FALSE)
+                     
+offset <- 200
+
+# This counts the number of bases in the adapters to remove from the primer sequences
+# Need to add one base for it to be correct (with unix counts and visual inspection)
+llen <- nchar(left_adapt)+1
+rlen <- nchar(right_adapt)+1
+
+for (ri in seq(nrow(primers))) 
+						{
+						id  	<- primers$POSITION[ri]
+						tmp 	<- strsplit(primers$POSITION, split="_")[[ri]][1]
+						chr		<- gsub("C", "c", tmp)
+						pos 	<- as.numeric(strsplit(primers$POSITION, split="_")[[ri]][2])
+						left 	<- substr(primers$FORWARD.PRIMER[ri],llen,100L)
+						right <- substr(primers$REVERSE.PRIMER[ri],rlen,100L)
+						seq 	<- paste(getSeq(Hsapiens,chr,pos-offset,pos), getSeq(Hsapiens,chr,pos+1,pos+offset), sep='')
+              
+
+   					outdf$ID[ri] <- id
+						outdf$Chr[ri] <- chr
+  					outdf$Pos[ri] <- pos
+  					outdf$Seq[ri] <- seq
+
+  					outdf$Left[ri] <- left
+  					outdf$Right[ri] <- right
+                     
+						}
+						
+write.csv(outdf, file = outfile)
 
