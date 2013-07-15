@@ -1,6 +1,11 @@
 # Script to Generate a primer sequences for design space for determination of amplicons
 # Given SNV sequence and also primer sequences
 
+
+# Single Cell excel file with the following columns
+# Ref Chr Posn tumour_freq xeno_Freq F_primer R_primer
+
+
 # These commands must be specifed in order for this script to work
 # source("http://www.bioconductor.org/biocLite.R"); source("http://www.bioconductor.org/biocLite.R"); 
 # biocLite("BSgenome"); biocLite("BSgenome.Hsapiens.UCSC.hg19"); library('BSgenome.Hsapiens.UCSC.hg19')
@@ -10,14 +15,18 @@ library('BSgenome.Hsapiens.UCSC.hg19')
 
 ########################## VARIABLE TO CHANGE #################################
 
-basedir<- "~/Documents/Breast Cancer/Tumour Evolution/Results/Cell_Line_Mixing"
+basedir<- "/Users/dyap/Documents/Breast Cancer/Tumour Evolution/Results/SA494/"
 
-infile <- paste(basedir,"Cell_Mix_I_Primer_set_144.csv",sep="/")
-outfile <- paste(basedir,"CellMix.csv",sep="/")
+infile <- paste(basedir,"SA494_single_cell_positions.csv",sep="/")
+outfile <- paste(basedir,"SA494sc.csv",sep="/")
 
-left_adapt="TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG"
-right_adapt="GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG"
+# Illumina Adapters
+#left_adapt="TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG"
+#right_adapt="GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG"
 
+# Fluidigm Adapters
+left_adapt="ACACTGACGACATGGTTCTACA"
+right_adapt="TACGGTAGCAGAGACTTGGTCT"
 
 ###############################################################################
 
@@ -34,7 +43,7 @@ outdf <- data.frame( ID = rep("", nrow(primers)),
                      stringsAsFactors = FALSE)
 
 # for design space                     
-offset <- 200
+offset <- 300
 
 # for SNV context 5bp
 snv <- 5
@@ -46,12 +55,11 @@ rlen <- nchar(right_adapt)+1
 
 for (ri in seq(nrow(primers))) 
 				{
-				id  	<- primers$POSITION[ri]
-				tmp 	<- strsplit(primers$POSITION, split="_")[[ri]][1]
-				chr	<- gsub("C", "c", tmp)
-				pos 	<- as.numeric(strsplit(primers$POSITION, split="_")[[ri]][2])
-				left 	<- substr(primers$FORWARD.PRIMER[ri],llen,100L)
-				right 	<- substr(primers$REVERSE.PRIMER[ri],rlen,100L)
+				chr 	<- paste("chr",as.numeric(primers$Chr[ri]),sep="")
+				pos 	<- as.numeric(primers$Posn[ri])
+				id	<- paste(chr,pos,sep="_")
+				left 	<- substr(primers$F_primer[ri],llen,100L)
+				right 	<- substr(primers$R_primer[ri],llen,100L)
 				seq 	<- paste(getSeq(Hsapiens,chr,pos-offset,pos), getSeq(Hsapiens,chr,pos+1,pos+offset), sep='')
                                 seq2 	<- paste(getSeq(Hsapiens,chr,pos-snv,pos), getSeq(Hsapiens,chr,pos+1,pos+snv), sep='')
 
