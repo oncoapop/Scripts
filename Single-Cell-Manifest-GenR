@@ -15,7 +15,7 @@ library('BSgenome.Hsapiens.UCSC.hg19')
 
 ########################## VARIABLE TO CHANGE #################################
 
-basedir<- "/Users/dyap/Documents/Breast Cancer/Tumour Evolution/Results/SA494/"
+basedir<- "/Users/dyap/Documents/Breast Cancer/Single Cell sorting/Analysis/SA494sc"
 
 infile <- paste(basedir,"SA494_single_cell_positions.csv",sep="/")
 outfile <- paste(basedir,"SA494sc.csv",sep="/")
@@ -55,7 +55,7 @@ rlen <- nchar(right_adapt)+1
 
 for (ri in seq(nrow(primers))) 
 				{
-				chr 	<- paste("chr",as.numeric(primers$Chr[ri]),sep="")
+				chr 	<- paste("chr",primers$Chr[ri],sep="")
 				pos 	<- as.numeric(primers$Posn[ri])
 				id	<- paste(chr,pos,sep="_")
 				left 	<- substr(primers$F_primer[ri],llen,100L)
