@@ -61,6 +61,7 @@ for (infile in infiles)
 		for (ri in seq(nrow(primers))) 
 				{
 				chr 	<- paste("chr",primers$Chr[ri],sep="")
+#				chr 	<- primers$Chr[ri]
 				pos 	<- as.numeric(primers$Posn[ri])
 				id	<- paste(chr,pos,sep="_")
 
