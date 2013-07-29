@@ -11,14 +11,17 @@
 # biocLite("BSgenome"); biocLite("BSgenome.Hsapiens.UCSC.hg19"); library('BSgenome.Hsapiens.UCSC.hg19')
 
 library('BSgenome.Hsapiens.UCSC.hg19')
+library(XLConnect)
 
 
 ########################## VARIABLE TO CHANGE #################################
 
-basedir<- "/Users/dyap/Documents/Breast Cancer/Single Cell sorting/Analysis/SA494sc"
+basedir<- "/home/dyap/Projects/MiSeq_Data"
+primerdir=paste(basedir,"Primer_Order_Files",sep="/")
+positiondir=paste(basedir,"Positions",sep="/")
 
-infile <- paste(basedir,"SA494_single_cell_positions.csv",sep="/")
-outfile <- paste(basedir,"SA494sc.csv",sep="/")
+setwd(primerdir)
+infiles <- list.files(pattern="*sc_*")
 
 # Illumina Adapters
 #left_adapt="TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG"
@@ -30,36 +33,40 @@ right_adapt="TACGGTAGCAGAGACTTGGTCT"
 
 ###############################################################################
 
+for (infile in infiles)
+	{
 
-primers <- read.csv(file=infile, header=TRUE, stringsAsFactors = FALSE)
+	wb <- loadWorkbook(infile, create = FALSE)
+	# Query available worksheets
+	sheets <- getSheets(wb)
 
-outdf <- data.frame( ID = rep("", nrow(primers)),
-		     Chr = rep("", nrow(primers)),
-                     Pos = rep(0, nrow(primers)),
-                     Left= rep("", nrow(primers)),
-                     Right=rep("", nrow(primers)),
-                     Seq2 = rep("", nrow(primers)),
-                     Seq = rep("", nrow(primers)),
-                     stringsAsFactors = FALSE)
+	# This command reads only the first sheet in a workbook into a dataframe
+	primers <- readWorksheet(wb, sheets[1])
 
-# for design space                     
-offset <- 300
+	outdf <- data.frame( ID = rep("", nrow(primers)),
+			     Chr = rep("", nrow(primers)),
+                	     Pos = rep(0, nrow(primers)),
+      	                     Left= rep("", nrow(primers)),
+        	             Right=rep("", nrow(primers)),
+                	     Seq2 = rep("", nrow(primers)),
+                     	     Seq = rep("", nrow(primers)),
+                    	     stringsAsFactors = FALSE)
 
-# for SNV context 5bp
-snv <- 5
+	# for design space                     
+	offset <- 300
 
-# This counts the number of bases in the adapters to remove from the primer sequences
-# Need to add one base for it to be correct (with unix counts and visual inspection)
-llen <- nchar(left_adapt)+1
-rlen <- nchar(right_adapt)+1
+	# for SNV context 5bp
+	snv <- 5
 
-for (ri in seq(nrow(primers))) 
+		for (ri in seq(nrow(primers))) 
 				{
 				chr 	<- paste("chr",primers$Chr[ri],sep="")
 				pos 	<- as.numeric(primers$Posn[ri])
 				id	<- paste(chr,pos,sep="_")
-				left 	<- substr(primers$F_primer[ri],llen,100L)
-				right 	<- substr(primers$R_primer[ri],llen,100L)
+
+				left <- gsub(left_adapt, "", primers$F_primer[ri])
+				right <- gsub(right_adapt, "", primers$R_primer[ri])
+				
 				seq 	<- paste(getSeq(Hsapiens,chr,pos-offset,pos), getSeq(Hsapiens,chr,pos+1,pos+offset), sep='')
                                 seq2 	<- paste(getSeq(Hsapiens,chr,pos-snv,pos), getSeq(Hsapiens,chr,pos+1,pos+snv), sep='')
 
@@ -73,6 +80,11 @@ for (ri in seq(nrow(primers)))
   				outdf$Seq2[ri] <- seq2
   				outdf$Seq[ri] <- seq
 				}
-						
-write.csv(outdf, file = outfile)
+			
+	outfile1 <- paste(gsub("_single_cell_PCR_positions.xlsx","",infile), "positions.txt",sep="_")
+	outfile <- paste("/home/dyap/dyap_temp", outfile1, sep="/")
+	write.csv(outdf, file = outfile)
 
+	}
+	
+########################
