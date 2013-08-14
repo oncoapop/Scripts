@@ -1,0 +1,91 @@
+# Script to Generate a primer sequences for design space for determination of amplicons
+# Given SNV sequence and also primer sequences
+
+
+# Single Cell excel file with the following columns
+# Ref Chr Posn tumour_freq xeno_Freq F_primer R_primer
+
+
+# These commands must be specifed in order for this script to work
+# source("http://www.bioconductor.org/biocLite.R"); source("http://www.bioconductor.org/biocLite.R"); 
+# biocLite("BSgenome"); biocLite("BSgenome.Hsapiens.UCSC.hg19"); library('BSgenome.Hsapiens.UCSC.hg19')
+
+library('BSgenome.Hsapiens.UCSC.hg19')
+library(XLConnect)
+
+
+########################## VARIABLE TO CHANGE #################################
+
+basedir<- "/home/dyap/Projects/MiSeq_Data"
+primerdir=paste(basedir,"Primer_Order_Files",sep="/")
+positiondir=paste(basedir,"Positions",sep="/")
+
+setwd(primerdir)
+infiles <- list.files(pattern="*sc_*")
+
+# Illumina Adapters
+#left_adapt="TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG"
+#right_adapt="GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG"
+
+# Fluidigm Adapters
+left_adapt="ACACTGACGACATGGTTCTACA"
+right_adapt="TACGGTAGCAGAGACTTGGTCT"
+
+###############################################################################
+
+for (infile in infiles)
+	{
+
+	wb <- loadWorkbook(infile, create = FALSE)
+	# Query available worksheets
+	sheets <- getSheets(wb)
+
+	# This command reads only the first sheet in a workbook into a dataframe
+	primers <- readWorksheet(wb, sheets[1])
+
+	outdf <- data.frame( ID = rep("", nrow(primers)),
+			     Chr = rep("", nrow(primers)),
+                	     Pos = rep(0, nrow(primers)),
+      	                     Left= rep("", nrow(primers)),
+        	             Right=rep("", nrow(primers)),
+                	     Seq2 = rep("", nrow(primers)),
+                     	     Seq = rep("", nrow(primers)),
+                    	     stringsAsFactors = FALSE)
+
+	# for design space                     
+	offset <- 300
+
+	# for SNV context 5bp
+	snv <- 5
+
+		for (ri in seq(nrow(primers))) 
+				{
+				chr 	<- paste("chr",primers$Chr[ri],sep="")
+#				chr 	<- primers$Chr[ri]
+				pos 	<- as.numeric(primers$Posn[ri])
+				id	<- paste(chr,pos,sep="_")
+
+				left <- gsub(left_adapt, "", primers$F_primer[ri])
+				right <- gsub(right_adapt, "", primers$R_primer[ri])
+				
+				seq 	<- paste(getSeq(Hsapiens,chr,pos-offset,pos), getSeq(Hsapiens,chr,pos+1,pos+offset), sep='')
+                                seq2 	<- paste(getSeq(Hsapiens,chr,pos-snv,pos), getSeq(Hsapiens,chr,pos+1,pos+snv), sep='')
+
+   				outdf$ID[ri] <- id
+				outdf$Chr[ri] <- chr
+  				outdf$Pos[ri] <- pos
+  
+  				outdf$Left[ri] <- left
+  				outdf$Right[ri] <- right
+  
+  				outdf$Seq2[ri] <- seq2
+  				outdf$Seq[ri] <- seq
+				}
+			
+	outfile1 <- paste(gsub("_single_cell_PCR_positions.xlsx","",infile), "positions.txt",sep="_")
+	outfile <- paste("/home/dyap/dyap_temp", outfile1, sep="/")
+	write.csv(outdf, file = outfile)
+
+	}
+	
+########################
